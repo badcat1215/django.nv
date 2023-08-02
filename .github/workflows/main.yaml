@@ -41,13 +41,18 @@ jobs:
           pip install -r requirements.txt
           python manage.py test taskManager
 
-  integration:
+ nuclei-scan:
     runs-on: ubuntu-20.04
     needs: test
     steps:
-      - run: echo "This is an integration step"
-      - run: exit 1
-        continue-on-error: true
+      - run: |
+           docker run --user $(id -u):$(id -g) -w /nuclei -v $(pwd):/nuclei:rw --rm projectdiscovery/nuclei:v2.9.6 -u https://prod-8gu3r930.lab.practical-devsecops.training -j -o nuclei-output.json
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: nuclei scan
+          path: nuclei-output.json
+        if: always()        # what is this for?
 
   prod:
     runs-on: ubuntu-20.04
